@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, request, jsonify
 
 import requests
@@ -16,18 +18,22 @@ def upload_image():
     if 'image' not in request.files:
         return 'No se ha enviado una imagen', 400
 
+    upload_folder = 'uploads'
+
+    # Verificar si la carpeta 'uploads' existe, si no, crearla
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+
     # Obtener el archivo de imagen
     image_file = request.files['image']
 
-    # Puedes realizar cualquier operación con la imagen, como guardarla
-    # Por ejemplo, guardar la imagen en una carpeta llamada 'uploads'
-    #image_file.save('uploads/' + image_file.filename)
-    # Notice: Please make the image size smaller than 800 pix.
-    #img = Image.open(image_file)
-    filename = "C:/Proyectos/SW2/visual_inspection/dataset/Preuba1_Normal_prueba_20240412143833/20240412151656.png"
+    image_file.save('./uploads/' + image_file.filename)
 
-    #img = img.convert("RGB")
-    img = Image.open(filename).convert("RGB")
+    image_path = os.path.join(upload_folder, image_file.filename)
+
+    print(image_path)
+
+    img = Image.open(image_path).convert("RGB")
 
     # Notice: Please make the image size smaller than 800 pix.
     MAX_SIZE = 800
@@ -41,9 +47,10 @@ def upload_image():
     img_bytes = BytesIO()
     img.save(img_bytes, format="PNG")
     img_bytes = img_bytes.getvalue()
-    files = {"image_data": (filename, img_bytes, "image/png")}
+    files = {"image_data": (image_path, img_bytes, "image/png")}
     data = {"apikey": credentials['apikey'], "aimodel_id": credentials['aimodel_id'], "model_type": credentials['model_type']}
 
+    print(data)
     # Send a request.
     response = requests.post(url, files=files, data=data)
 
@@ -56,9 +63,7 @@ def upload_image():
         "result": result_json.get("result"),
         "anomaly_score": result_json.get("anomaly_score")
     }
-    print("result:", result_json["result"])
-    print("response:", result_json)
-
+    print(result_json)
     return result_request, 200
 
 
@@ -82,4 +87,4 @@ def get_ids():
 
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run(port=5000)
