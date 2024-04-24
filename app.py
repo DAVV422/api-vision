@@ -1,12 +1,14 @@
 import os
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 import requests
 from PIL import Image # pip install Pillow
 from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)
 
 # Variable global para almacenar los ids
 credentials = {}
